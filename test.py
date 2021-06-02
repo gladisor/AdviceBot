@@ -1,19 +1,15 @@
-import requests
-import json
 import datetime
+from utils import get_submissions
 
 after = int(datetime.datetime(2019, 1, 1).timestamp())
-before = int(datetime.datetime(2019, 10, 1).timestamp())
+before = int(datetime.datetime(2019, 1, 2).timestamp())
 sub = 'Advice'
+size = 85
+min_comments = 3
 
-print(after)
-print(before)
-# nlt18t
-# url = f'https://api.pushshift.io/reddit/search/submission/?after={after}$before={before}&subreddit={sub}&size={100}'
-url = f'https://api.pushshift.io/reddit/search/submission/?q=Advice%Recived&after={after}&before={before}&subreddit=Advice&size={1000}'
-# q=flair_name%3A%22Advice%Recived%22&restrict_sr=1
-r = requests.get(url)
-data = json.loads(r.text)
+submissions = get_submissions(after, before, sub, size, min_comments)
 
-for post in data['data']:
-    print(post['title'])
+for post in submissions:
+    print(post['title'], '\n')
+
+print(len(submissions))
