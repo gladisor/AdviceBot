@@ -1,6 +1,25 @@
 import requests
 import json
 
+def request_data(url):
+    '''
+    Uses requests library to pull data from a url
+
+    Parameters
+    ----------
+    url : str
+        URL from which to gather data
+
+    Returns
+    -------
+    dict
+        dictionary response from request
+    '''
+
+    r = requests.get(url)
+    data = json.loads(r.text)
+    return data['data']
+
 def get_submissions(after, before, sub, size=100, min_comments=3):
     '''
     Function which gets submissions from the pushshift api.
@@ -32,10 +51,11 @@ def get_submissions(after, before, sub, size=100, min_comments=3):
         f'&num_comments>={min_comments}'
         )
 
-    r = requests.get(url)
-    data = json.loads(r.text)
-
-    return data['data']
+    # r = requests.get(url)
+    # data = json.loads(r.text)
+    #
+    # return data['data']
+    return request_data(url)
 
 def is_helpful(comment):
     '''
