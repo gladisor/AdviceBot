@@ -1,7 +1,26 @@
 import requests
 import json
 
-def get_submissions(after, before, sub, size=100, min_comments=3):
+def request_data(url):
+    '''
+    Uses requests library to pull data from a url
+
+    Parameters
+    ----------
+    url : str
+        URL from which to gather data
+
+    Returns
+    -------
+    dict
+        Dictionary response from request
+    '''
+
+    r = requests.get(url)
+    data = json.loads(r.text)
+    return data['data']
+
+def get_submissions(after, before, sub, size=100):
     '''
     Function which gets submissions from the pushshift api.
 
@@ -15,8 +34,6 @@ def get_submissions(after, before, sub, size=100, min_comments=3):
         Name of the subreddit to get submissions from
     size : int (optional)
         Number of posts to grab (100 maximum)
-    min_comments : int
-        Minimum number of comments required for a post to be returned
 
     Returns
     -------
@@ -29,13 +46,27 @@ def get_submissions(after, before, sub, size=100, min_comments=3):
         f'&before={before}'
         f'&subreddit={sub}'
         f'&size={size}'
-        f'&num_comments>={min_comments}'
         )
 
-    r = requests.get(url)
-    data = json.loads(r.text)
+    return request_data(url)
 
-    return data['data']
+def get_comments(submission_id):
+    '''
+    Gets comments from a given submission id.
+
+    Parameters
+    ----------
+    submission_id : str
+        Base 36 id which identifies a post
+
+    Returns
+    -------
+    list
+        List of dicts containing comment data
+    '''
+    url = f'https://api.pushshift.io/reddit/search/comment/?link_id={submission_id}'
+
+    return request_data(url)
 
 def is_helpful(comment):
     '''
