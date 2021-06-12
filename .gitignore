@@ -5,3 +5,4 @@ __pycache__/
 
 # Other files we want to ignore:
 keys.json
+*.csv

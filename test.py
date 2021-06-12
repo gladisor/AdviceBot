@@ -6,13 +6,20 @@ import itertools
 import numpy as np
 import pandas as pd
 
-after = int(datetime.datetime(2018, 1, 3).timestamp())
-before = int(datetime.datetime(2018, 1, 4).timestamp())
-sub = 'Advice'
-size = 5
+import time
 
+day = 1
+after = int(datetime.datetime(2018, 1, day).timestamp())
+before = int(datetime.datetime(2018, 1, day+1).timestamp())
+sub = 'Advice'
+size = 10
+
+start = time.time()
 ## Querying submissions from pushshift
-submissions = get_submissions(after, before, sub, size)
+submissions = get_submissions(after, before, sub, size=5)
+submissions = list(filter(lambda x: x['num_comments'] != 0, submissions))
+print('Querying and filtering submissions from pushshift: ', time.time()-start)
+
 ## Extracting id and question from each submission
 '''
 This step is a little complicated. What is happening here is:
@@ -44,22 +51,33 @@ This step is a little complicated. What is happening here is:
         text of the posts. In python there is multiple assignment so we assign
         variables "ids" and "questions" to the two tuples.
 '''
+start = time.time()
 ids, questions = zip(*[(sub['id'], sub['selftext']) for sub in submissions])
+print('Extracting id and text: ', time.time()-start)
 
+start = time.time()
 ## Getting list of lists of comments from each submission
 comments = list(map(get_comments, ids))
+print('Querying comments: ', time.time()-start)
+
+start = time.time()
 ## Getting number of comments per post
 num_comments = list(map(len, comments))
 ## Flattening comments into single list
 comments = list(itertools.chain(*comments))
 ## Extracting the text from each comment
 comments = [comment['body'] for comment in comments]
+print('Processing comments: ', time.time()-start)
 
+start = time.time()
 ## Storing questions in a numpy array so we can use the repeat function
 questions = np.array(questions, dtype=object)
 ## Repeating the question for the number of comments that it has
 questions = np.repeat(questions, num_comments)
+print('Processing questions: ', time.time()-start)
 
+start = time.time()
 ## Combining the questions with their respective comments
-data = pd.DataFrame({'question':questions, 'comment':comments})
-print(data)
+data = pd.DataFrame({'question': questions, 'comment': comments})
+data.to_csv('small_data.csv')
+print('Saving data: ', time.time()-start)
