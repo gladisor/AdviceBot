@@ -16,8 +16,7 @@ def request_data(url):
         Dictionary response from request
     '''
 
-    r = requests.get(url)
-    data = json.loads(r.text)
+    data = requests.get(url).json()
     return data['data']
 
 def get_submissions(after, before, sub, size=100):
@@ -67,25 +66,3 @@ def get_comments(submission_id):
     url = f'https://api.pushshift.io/reddit/search/comment/?link_id={submission_id}'
 
     return request_data(url)
-
-def is_helpful(comment):
-    '''
-    Recursively searches comment trees to see if the root comment
-    is marked by OP as helpful.
-
-    Parameters
-    ----------
-    comment : Comment
-        A praw Comment object, praw.models.reddit.comment.Comment
-
-    Returns
-    -------
-    bool
-        True if the given comment was helpful otherwise false.
-    '''
-    helpful = True if comment.distinguished else False
-
-    for reply in comment.replies:
-        helpful = is_helpful(reply)
-
-    return helpful
