@@ -1,6 +1,6 @@
 import requests
 import json
-import time
+import time 
 import itertools
 import numpy as np
 import pandas as pd
@@ -94,27 +94,22 @@ def is_helpful(comment):
 
     return helpful
 
-def get_data(after, before, sub):
+def get_data(submissions):
     '''
     Pulls data from submissions and generates csv file containing 
     questions and their respective answers. 
 
     Parameters
     ----------
-        after : int
-            Integer unix timestamp for the start date to the desired window
-        before : int
-            Integer unix timestamp for the end date to the desired window
-        sub : str
-            Name of the subreddit to get submissions from
+        submissions : list
+            data array from reddit submission 
 
     Returns
     -------
         n/a
     '''
+
     start = time.time()
-    ## Querying submissions from pushshift
-    submissions = get_submissions(after, before, sub, size=5)
     ## Filtering out submissions with less than one comment
     submissions = list(filter(lambda x: x['num_comments'] != 0, submissions))
     print('Querying and filtering submissions from pushshift: ', time.time()-start)
