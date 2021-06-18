@@ -95,6 +95,23 @@ def is_helpful(comment):
     return helpful
 
 def get_data(after, before, sub):
+    '''
+    Pulls data from submissions and generates csv file containing 
+    questions and their respective answers. 
+
+    Parameters
+    ----------
+        after : int
+            Integer unix timestamp for the start date to the desired window
+        before : int
+            Integer unix timestamp for the end date to the desired window
+        sub : str
+            Name of the subreddit to get submissions from
+
+    Returns
+    -------
+        n/a
+    '''
     start = time.time()
     ## Querying submissions from pushshift
     submissions = get_submissions(after, before, sub, size=5)
