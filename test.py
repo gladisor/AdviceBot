@@ -17,6 +17,7 @@ size = 10
 start = time.time()
 ## Querying submissions from pushshift
 submissions = get_submissions(after, before, sub, size=5)
+## Filtering out submissions with less than one comment
 submissions = list(filter(lambda x: x['num_comments'] != 0, submissions))
 print('Querying and filtering submissions from pushshift: ', time.time()-start)
 
