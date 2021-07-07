@@ -3,18 +3,22 @@ from utils import get_submissions, get_comments, get_data
 import requests
 import json
 
-day = 1
+subreddit = 'Advice'
 
-after = int(datetime.datetime(2018, 1, day).timestamp())
-before = int(datetime.datetime(2018, 1, day+1).timestamp())
-new = datetime.datetime.fromtimestamp(after) + datetime.timedelta(days=1)
+success = 0
+failure = 0
 
-print(f'after {after}')
-print(f'before {before}')
-print(f'new {int(new.timestamp())}')
+start_timestamp = int(datetime.datetime(2019, 1, 3).timestamp())
+data = get_data(start_timestamp, subreddit)
+print(data)
 
-# sub = 'Advice'
+# for day in range(1, 30):
+#     start_timestamp = int(datetime.datetime(2018, 1, day).timestamp())
+#     try:
+#         data = get_data(start_timestamp, subreddit)
+#         success += 1
 #
-# submissions = get_submissions(after, before, sub, size=5)
+#     except Exception as e:
+#         failure += 1
 #
-# get_data(submissions)
+#     print(f'Success: {success}, Failure: {failure}')

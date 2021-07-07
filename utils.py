@@ -1,9 +1,10 @@
 import requests
 import json
-import time 
+import time
 import itertools
 import numpy as np
 import pandas as pd
+import datetime
 
 def request_data(url):
     '''
@@ -24,7 +25,7 @@ def request_data(url):
     data = json.loads(r.text)
     return data['data']
 
-def get_submissions(after, before, sub, size=100):
+def get_submissions(after, before, subreddit, size=100):
     '''
     Function which gets submissions from the pushshift api.
 
@@ -48,7 +49,7 @@ def get_submissions(after, before, sub, size=100):
         f'https://api.pushshift.io/reddit/search/submission/'
         f'?after={after}'
         f'&before={before}'
-        f'&subreddit={sub}'
+        f'&subreddit={subreddit}'
         f'&size={size}'
         )
 
@@ -94,86 +95,45 @@ def is_helpful(comment):
 
     return helpful
 
-def get_data(submissions):
+def get_data(start_timestamp, subreddit):
     '''
-    Pulls data from submissions and generates csv file containing 
-    questions and their respective answers. 
+    Pulls data from submissions and generates csv file containing
+    questions and their respective answers.
 
     Parameters
     ----------
-        submissions : list
-            data array from reddit submission 
+    start_timestamp : int
+        Timestamp at which to collect one days worth of posts from.
 
     Returns
     -------
-        n/a
+    DataFrame
+        Pandas DataFrame object
     '''
-
-    start = time.time()
-    ## Filtering out submissions with less than one comment
-    submissions = list(filter(lambda x: x['num_comments'] != 0, submissions))
-    print('Querying and filtering submissions from pushshift: ', time.time()-start)
-
+    end_timestamp = datetime.datetime.fromtimestamp(start_timestamp) + datetime.timedelta(days=1)
+    end_timestamp = int(end_timestamp.timestamp())
+    ## Getting submissions from specified time and subreddit
+    submissions = get_submissions(start_timestamp, end_timestamp, subreddit, 50)
     ## Extracting id and question from each submission
-    '''
-    This step is a little complicated. What is happening here is:
-        1.) "for sub in submissions" is iterating over each submission dictionary
-            in the list.
-
-        2.) "(sub['id'], sub['selftext'])" is taking out only the id and the text
-            and packaging that into a tuple. This will result in a list of tuples
-
-            [
-            ('7z4st', 'Help my dog ate my homework! ...'),
-            ...
-            ('215zl', 'Blah Blah ....')
-            ]
-
-        3.) The "*" operator now disolves the list into a bunch of loose tuples
-            which are now fed into the zip function.
-
-        4.) The "zip" function takes two iterables and packages them together into units.
-            For example if you have two lists:
-
-            list1 = ['a', 'b', 'c']
-            list2 = [1, 2, 3]
-
-            and we call zip --> zip(list1, list2)
-            it will produce --> [('a', 1), ('b', 2), ('c', 3)]
-
-        5.) Finally we have a tuple of all the ids of the posts, and a tuple of all the
-            text of the posts. In python there is multiple assignment so we assign
-            variables "ids" and "questions" to the two tuples.
-    '''
-
-    start = time.time()
-    # extract id and questions
     ids, questions = zip(*[(sub['id'], sub['selftext']) for sub in submissions])
-    print('Extracting id and text: ', time.time()-start)
-
-    start = time.time()
-    # extract comments for each post id
+    # Extract comments for each post id
     comments = list(map(get_comments, ids))
-    print('Querying comments: ', time.time()-start)
+    ## Filtering out non top level comments
+    comments = list(map(
+        lambda x: [item for item in x if item['link_id'] == item['parent_id']],
+        comments
+        ))
 
-    start = time.time()
-    # extract number of comments 
+    # Extract number of comments
     num_comments = list(map(len, comments))
-    # chain comments into list 
+    # Chain comments into list
     comments = list(itertools.chain(*comments))
-    # extract text from comments 
+    # Extract text from comments
     comments = [comment['body'] for comment in comments]
-    print('Processing comments: ', time.time()-start)
-
-    start = time.time()
-    # storing questions 
+    # Storing questions
     questions = np.array(questions, dtype=object)
-    # iterating over number of comments 
+    # Iterating over number of comments
     questions = np.repeat(questions, num_comments)
-    print('Processing questions: ', time.time()-start)
-
-    start = time.time()
-    # output csv with questions and respective comments 
+    # Output csv with questions and respective comments
     data = pd.DataFrame({'question': questions, 'comment': comments})
-    data.to_csv('small_data.csv')
-    print('Saving data: ', time.time()-start)
+    return data
